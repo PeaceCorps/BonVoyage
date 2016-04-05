@@ -46,5 +46,5 @@
     "jshint-stylish": "^2.1.0",
     "lorem-ipsum": "^1.0.3",
     "sprintf-js": "^1.0.3"
-  },
+  }
 }
