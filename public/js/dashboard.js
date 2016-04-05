@@ -12,7 +12,9 @@ $(function () {
 		return $('div#dashboardTable table');
 	}
 
-	FastClick.attach(document.body);
+	if (FastClick) {
+		FastClick.attach(document.body);
+	}
 
 	// Track what has been toggled in the search filters
 	var searchOptions = {
