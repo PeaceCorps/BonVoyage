@@ -37,6 +37,7 @@ function isValid(row) {
 
 function storeWarnings(warnings) {
 	var json = JSON.stringify(warnings, null, 2);
+	console.log(json);
 	fs.writeFile(OUTPUT_FILE, json, function (err) {
 		if (err) {
 			return console.log(err);
