@@ -12,21 +12,34 @@ block content
 				include flash
 				
 				#request
-					if user
-						h2 Volunteer Contact 
-						.shadow-box
-							p
-								span 
-									b Name: 
-								span= request.user.name
-							p
-								span 
-									b Email: 
-								span= (request.user.email ? request.user.email : "No email on file.")
-							p
-								span 
-									b Phone: 
-								span= (request.user.phone ? request.user.phone : "No phone on file.")
+					h2 Volunteer 
+					.shadow-box
+						p
+							span 
+								b Name: 
+							span= request.user.name
+						p
+							span 
+								b Email: 
+							span= (request.user.email ? request.user.email : "No email on file.")
+						p
+							span 
+								b Phone: 
+							span= (request.user.phone ? request.user.phone : "No phone on file.")
+					h2 Assigned Staff 
+					.shadow-box
+						p
+							span 
+								b Name: 
+							span= request.staff.name
+						p
+							span 
+								b Email: 
+							span= (request.staff.email ? request.staff.email : "No email on file.")
+						p
+							span 
+								b Phone: 
+							span= (request.staff.phone ? request.staff.phone : "No phone on file.")
 					h2 Trip Itinerary
 					.shadow-box
 						each leg in request.legs

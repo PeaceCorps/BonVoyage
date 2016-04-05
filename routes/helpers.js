@@ -12,6 +12,7 @@ var fs = require('fs');
 var twilio = require('twilio');
 var mailgun = require('mailgun-js');
 var mailcomposer = require('mailcomposer');
+var mongoose = require('mongoose');
 var countryFilePath = 'public/data/countryList.json';
 var countryListFile = fs.readFileSync(countryFilePath, 'utf8');
 var countriesDictionary = JSON.parse(countryListFile);
@@ -71,11 +72,16 @@ module.exports.getEndDate = function (request) {
 	}
 };
 
-module.exports.getRequests = function (req, res, pending, cb) {
+module.exports.getRequests = function (req, res, options, cb) {
 	if (req.user) {
-		var matchUser = {};
+		var matchRequest = {};
+		if (options && options._id) {
+			matchRequest._id = mongoose.Types.ObjectId(options._id);
+			console.log('Looking for request with id: ' + matchRequest._id);
+		}
+
 		if (req.user.access < Access.STAFF) {
-			matchUser.userId = req.user._id;
+			matchRequest.userId = req.user._id;
 		}
 
 		var matchCountry = {};
@@ -85,7 +91,7 @@ module.exports.getRequests = function (req, res, pending, cb) {
 
 		Request.aggregate([
 			{
-				$match: matchUser,
+				$match: matchRequest,
 			},
 			{
 				// JOIN with the user data belonging to each request
@@ -102,10 +108,51 @@ module.exports.getRequests = function (req, res, pending, cb) {
 				$unwind: '$user',
 			},
 			{
+				// JOIN with the user data belonging to each request
+				$lookup: {
+					from: 'users',
+					localField: 'staffId',
+					foreignField: '_id',
+					as: 'staff',
+				},
+			},
+			{
+				// Only one staff will ever match (emails are unique)
+				// Convert the staff key to a single document from an array
+				$unwind: '$staff',
+			},
+			{
 				$match: matchCountry,
 			},
 			{
-				$match: (pending !== undefined ? { 'status.isPending': pending } : {}),
+				$match: (options && options.pending !== undefined ?
+						{ 'status.isPending': options.pending } : {}),
+			},
+			{
+				// Hide certain fields of the output (including password hashes)
+				$project: {
+					userId: true,
+					staffId: true,
+					counterpartApproved: true,
+					comments: true,
+					legs: true,
+					timestamp: true,
+					status: true,
+					user: {
+						name: true,
+						email: true,
+						phone: true,
+						access: true,
+						countryCode: true,
+					},
+					staff: {
+						name: true,
+						email: true,
+						phone: true,
+						access: true,
+						countryCode: true,
+					},
+				},
 			},
 		], function (err, requests) {
 			if (err) {
@@ -128,8 +175,22 @@ module.exports.getRequests = function (req, res, pending, cb) {
 module.exports.getUsers = function (options, cb) {
 	var q = (options.user !== undefined ? options.user : {});
 	if (options.maxAccess !== undefined) {
-		q.access = { $lte: options.maxAccess };
+		if (q.access === undefined) {
+			q.access = {};
+		}
+
+		q.access.$lte = options.maxAccess;
 	}
+
+	if (options.minAccess !== undefined) {
+		if (q.access === undefined) {
+			q.access = {};
+		}
+
+		q.access.$gte = options.minAccess;
+	}
+
+	console.log(q);
 
 	// Note: using lean() so that users is a JS obj, instead of a Mongoose obj
 	User.find(q, 'access name email phone _id countryCode').lean().exec(

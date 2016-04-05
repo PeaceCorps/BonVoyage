@@ -20,3 +20,6 @@
 #htmlwrapper .checkbox {
   display: table;
   margin: 10px auto; }
+
+#htmlwrapper #request-submit {
+  margin-top: 10px; }

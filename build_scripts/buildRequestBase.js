@@ -72,7 +72,7 @@ function generateLeg() {
 	};
 }
 
-function generateRequest(user) {
+function generateRequest(user, staff) {
 	var isPending = randBool(0.3);
 	var isApproved = (isPending ? undefined : randBool(0.7));
 	var legs = [];
@@ -82,6 +82,7 @@ function generateRequest(user) {
 
 	return new Request({
 		userId: user._id,
+		staffId: staff._id,
 		status: {
 			isPending: isPending,
 			isApproved: isApproved,
@@ -117,15 +118,26 @@ function saveAll(objects, cb) {
 
 console.log(sprintf('Generating %d requests...', REQUESTS_TO_GENERATE));
 
-User.find({ access: Access.VOLUNTEER }, function (err, users) {
+User.find({  }, function (err, users) {
 	if (err) {
 		console.error(err);
 	}
 
+	var volunteers = [];
+	var staff = [];
+	for (var i = 0; i < users.length; i++) {
+		if (users[i].access == Access.VOLUNTEER) {
+			volunteers.push(users[i]);
+		} else {
+			staff.push(users[i]);
+		}
+	}
+
 	var requests = [];
 	for (var i = 0; i < REQUESTS_TO_GENERATE; i++) {
-		var randUser = users[randIndex(users.length)];
-		requests.push(generateRequest(randUser));
+		var randVolunteer = users[randIndex(volunteers.length)];
+		var randStaff = staff[randIndex(staff.length)];
+		requests.push(generateRequest(randVolunteer, randStaff));
 	}
 
 	console.log(sprintf('About to save %d requests.', requests.length));

@@ -19,8 +19,11 @@ block content
         include flash
 
         if shouldSelectRequestee
-          label.info(for='selectRequestee') Select Requestee
-          select.form-control.selectRequestee(placeholder='John Doe')
+          label.info(for='selectRequestee') Select the Volunteer
+          select.form-control#selectRequestee(placeholder='John Doe')
+        
+        label.info(for='selectStaff') Assign a Staff Member
+        select.form-control#selectStaff(placeholder='Patrick Choquette')
 
         #request-submit
 

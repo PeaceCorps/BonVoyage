@@ -131,6 +131,7 @@ router.renderEditRequest = function (req, res) {
 
 		sub = {
 			userId: req.request.userId,
+			staffId: req.request.staffId,
 			legs: req.request.legs,
 			counterpartApproved: '' + req.request.counterpartApproved,
 		};

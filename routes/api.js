@@ -21,43 +21,18 @@ var Converter = require('csvtojson').Converter;
  * Handle Parameters
  */
 router.handleRequestId = function (req, res, next, requestId) {
-	// console.log(req.query);
-	// Look up requestId to determine if it is pending or not
-	Request.findOne({ _id: requestId }, 'status', function (err, request) {
+	helpers.getRequests(req, res, { _id: requestId },
+		function (err, requests) {
 		if (err) {
 			return next(err);
-		}
-
-		if (request === null) {
-			return next(new Error('The request could not be found.'));
-		}
-
-		helpers.getRequests(req, res, request.status.isPending,
-			function (err, requests) {
-			if (err) {
-				return next(err);
+		} else {
+			if (requests.length > 0) {
+				req.request = requests[0];
+				return next();
 			} else {
-				// Lookup the id in this list of requests
-				for (var i = 0; i < requests.length; i++) {
-					if (requests[i]._id == requestId) {
-						req.request = requests[i];
-						if (i < requests.length - 1) {
-							req.nextRequestId = requests[i + 1]._id;
-						}
-
-						if (i > 0) {
-							req.prevRequestId = requests[i - 1]._id;
-						}
-
-						return next();
-					}
-				}
-
-				if (req.request === undefined) {
-					return next(new Error('Request not found.'));
-				}
+				return next(new Error('Request not found.'));
 			}
-		});
+		}
 	});
 };
 
@@ -95,10 +70,19 @@ router.getPastRequests = function (req, res) {
 };
 
 router.getUsers = function (req, res) {
-	var rawMaxAccess = req.query.maxAccess;
-	var maxAccess = Access[rawMaxAccess];
+	var maxAccess = parseInt(req.query.maxAccess);
+	if (isNaN(maxAccess)) {
+		maxAccess = Access.ADMIN;
+	}
+
+	var minAccess = parseInt(req.query.minAccess);
+	if (isNaN(minAccess)) {
+		minAccess = Access.VOLUNTEER;
+	}
+
 	helpers.getUsers({
 		maxAccess: maxAccess,
+		minAccess: minAccess,
 	}, function (err, users) {
 		if (err) {
 			console.error(err);
@@ -131,104 +115,143 @@ function validateRequestSubmission(req, res, failureRedirect, cb) {
 		}
 	}
 
-	// Verify that the user exists
+	var staffId = req.body.staffId;
+
+	// Verify that the volunteer exists
 	helpers.getUsers({
 		user: {
 			_id: userId,
 		},
 	}, function (err, users) {
-		if (users.length > 0) {
-			var legs = [];
-			var countries = [];
-			for (var i = 0; i < req.body.legs.length; i++) {
-				var leg = req.body.legs[i];
-				var start = new DateOnly(leg.startDate);
-				var end = new DateOnly(leg.endDate);
+		if (err) {
+			console.error(err);
+			req.session.submission = req.body;
+			req.flash('submissionFlash', {
+				text: 'An error has occrured while attempting to process your request. ' +
+					'Please try again later.',
+				class: 'danger',
+			});
+			res.end(JSON.stringify({ redirect: failureRedirect }));
+		} else if (users.length > 0) {
+			// Verify that the volunteer exists
+			helpers.getUsers({
+				user: {
+					_id: staffId,
+				},
+			}, function (err, staff) {
+				if (err) {
+					console.error(err);
+					req.session.submission = req.body;
+					req.flash('submissionFlash', {
+						text: 'An error has occrured while attempting to process your request. ' +
+							'Please try again later.',
+						class: 'danger',
+					});
+					res.end(JSON.stringify({ redirect: failureRedirect }));
+				} else if (staff.length > 0) {
+					var legs = [];
+					var countries = [];
+					for (var i = 0; i < req.body.legs.length; i++) {
+						var leg = req.body.legs[i];
+						var start = new DateOnly(leg.startDate);
+						var end = new DateOnly(leg.endDate);
 
-				if (start > end) {
-					req.session.submission = req.body;
-					req.flash('submissionFlash', {
-						text: 'The start date you entered for leg #' +
-							(i + 1) + ' comes after the end date.',
-						class: 'danger',
-					});
-					res.end(JSON.stringify({ redirect: failureRedirect }));
-					return cb(null);
-				} else if (Object.keys(countriesDictionary).indexOf(leg.country) == -1) {
-					req.session.submission = req.body;
-					req.flash('submissionFlash', {
-						text: 'The country that you have selected for leg #' +
-							(i + 1) + ' is not a valid country.',
-						class: 'danger',
-					});
-					res.end(JSON.stringify({ redirect: failureRedirect }));
-					return cb(null);
-				} else if (leg.city === '') {
-					req.session.submission = req.body;
-					req.flash('submissionFlash', {
-						text: 'The city that you entered for leg #' +
-							(i + 1) + ' is invalid',
-						class: 'danger',
-					});
-					res.end(JSON.stringify({ redirect: failureRedirect }));
-					return cb(null);
-				} else {
-					legs.push({
-						startDate: start,
-						endDate: end,
-						city: leg.city,
-						country: countriesDictionary[leg.country],
-						countryCode: leg.country,
-						hotel: leg.hotel,
-						contact: leg.contact,
-						companions: leg.companions,
-						description: leg.description,
-						addedLegCount: leg.addedLegCount,
-					});
+						if (start > end) {
+							req.session.submission = req.body;
+							req.flash('submissionFlash', {
+								text: 'The start date you entered for leg #' +
+									(i + 1) + ' comes after the end date.',
+								class: 'danger',
+							});
+							res.end(JSON.stringify({ redirect: failureRedirect }));
+							return cb(null);
+						} else if (Object.keys(countriesDictionary).indexOf(leg.country) == -1) {
+							req.session.submission = req.body;
+							req.flash('submissionFlash', {
+								text: 'The country that you have selected for leg #' +
+									(i + 1) + ' is not a valid country.',
+								class: 'danger',
+							});
+							res.end(JSON.stringify({ redirect: failureRedirect }));
+							return cb(null);
+						} else if (leg.city === '') {
+							req.session.submission = req.body;
+							req.flash('submissionFlash', {
+								text: 'The city that you entered for leg #' +
+									(i + 1) + ' is invalid',
+								class: 'danger',
+							});
+							res.end(JSON.stringify({ redirect: failureRedirect }));
+							return cb(null);
+						} else {
+							legs.push({
+								startDate: start,
+								endDate: end,
+								city: leg.city,
+								country: countriesDictionary[leg.country],
+								countryCode: leg.country,
+								hotel: leg.hotel,
+								contact: leg.contact,
+								companions: leg.companions,
+								description: leg.description,
+								addedLegCount: leg.addedLegCount,
+							});
 
-					if (countries.indexOf(leg.country) == -1) {
-						countries.push(leg.country);
+							if (countries.indexOf(leg.country) == -1) {
+								countries.push(leg.country);
+							}
+						}
 					}
-				}
-			}
 
-			if (req.body.counterpartApproved === 'false') {
-				req.session.submission = req.body;
-				req.flash('submissionFlash', {
-					text: 'You must have approval from your counterpart in order ' +
-					'to submit this leave request.',
-					class: 'danger',
-				});
-				res.end(JSON.stringify({ redirect: failureRedirect }));
-				return cb(null);
-			} else if (legs.length > 0) {
-				cb({
-					requestData: {
-						userId: userId,
-						status: {
-							isPending: true,
-							isApproved: false,
-						},
-						legs: legs,
-						counterpartApproved: true,
-					},
-					countries: countries,
-					users: users,
-				});
-			} else {
-				req.session.submission = req.body;
-				req.flash('submissionFlash', {
-					text: 'An error has occurred while trying to save ' +
-						'this request. Please try again.',
-					class: 'danger',
-				});
-				res.end(JSON.stringify({ redirect: failureRedirect }));
-				return cb(null);
-			}
+					if (req.body.counterpartApproved === 'false') {
+						req.session.submission = req.body;
+						req.flash('submissionFlash', {
+							text: 'You must have approval from your counterpart in order ' +
+							'to submit this leave request.',
+							class: 'danger',
+						});
+						res.end(JSON.stringify({ redirect: failureRedirect }));
+						return cb(null);
+					} else if (legs.length > 0) {
+						cb({
+							requestData: {
+								userId: userId,
+								staffId: staffId,
+								status: {
+									isPending: true,
+									isApproved: false,
+								},
+								legs: legs,
+								counterpartApproved: true,
+							},
+							countries: countries,
+							users: users,
+							staff: staff,
+						});
+					} else {
+						req.session.submission = req.body;
+						req.flash('submissionFlash', {
+							text: 'An error has occurred while trying to save ' +
+								'this request. Please try again.',
+							class: 'danger',
+						});
+						res.end(JSON.stringify({ redirect: failureRedirect }));
+						return cb(null);
+					}
+				} else {
+					req.session.submission = req.body;
+					req.flash('submissionFlash', {
+						text: 'The staff that you selected could not be found.',
+						class: 'danger',
+					});
+					res.end(JSON.stringify({ redirect: failureRedirect }));
+					return cb(null);
+				}
+			});
 		} else {
 			req.session.submission = req.body;
 			req.flash('submissionFlash', {
-				text: 'The user that you selected could not be found.',
+				text: 'The volunteer that you selected could not be found.',
 				class: 'danger',
 			});
 			res.end(JSON.stringify({ redirect: failureRedirect }));
@@ -354,8 +377,16 @@ router.postUpdatedRequest = function (req, res) {
 
 			// Detect if the user submitted for changed
 			if (data.users.length > 0 && !data.users[0]._id.equals(req.request.userId)) {
-				comment += '- Changed Peace Corps Volunteer from ' +
+				comment += '- Changed Peace Corps volunteer from ' +
 					req.request.user.name + ' to ' + data.users[0].name + '\n';
+				changesMade = true;
+			}
+
+			// Detect if the staff assigned has changed
+			if (data.staff.length > 0 &&
+				!data.staff[0]._id.equals(req.request.staffId)) {
+				comment += '- Changed assigned Peace Corps staff from ' +
+					req.request.staff.name + ' to ' + data.staff[0].name + '\n';
 				changesMade = true;
 			}
 

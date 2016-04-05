@@ -159,7 +159,7 @@ $(function() {
   }
 
   function isSubmitAsOtherUserShowing() {
-      return $('.selectRequestee').length > 0;
+      return $('#selectRequestee').length > 0;
   }
 
   function submissionDataExists() {
@@ -180,7 +180,7 @@ $(function() {
     }
   }
   $('.select-country').selectize();
-  var $select_requestee = $('.selectRequestee').selectize({
+  var $selectRequestee = $('#selectRequestee').selectize({
       valueField: '_id',
       labelField: 'name',
       searchField: ['name'],
@@ -189,28 +189,49 @@ $(function() {
         updateVolunteerName(value);
       }
   });
+  var $selectStaff = $('#selectStaff').selectize({
+      valueField: '_id',
+      labelField: 'name',
+      searchField: ['name'],
+      sortField: 'name'
+  });
 
 
   if (isSubmitAsOtherUserShowing()) {
       $.ajax({
           method: "GET",
-          url: "/api/users?maxAccess=VOLUNTEER",
+          url: "/api/users?maxAccess=0",
           dataType: "json",
           success: function(json) {
             users = json;
             console.log(json);
-            $select_requestee[0].selectize.addOption(json);
-            $select_requestee[0].selectize.refreshOptions(false);
+            $selectRequestee[0].selectize.addOption(json);
+            $selectRequestee[0].selectize.refreshOptions(false);
             if(submissionDataExists()) {
                 // A failure just occurred during submission: we need to replace the previously submitted data
                 if (isSubmitAsOtherUserShowing() && submissionData.userId !== undefined) {
-                    $select_requestee[0].selectize.setValue(submissionData.userId);
+                    $selectRequestee[0].selectize.setValue(submissionData.userId);
                 }
                 updateVolunteerName(submissionData.userId);
             }
           }
       });
   }
+  $.ajax({
+      method: "GET",
+      url: "/api/users?minAccess=1",
+      dataType: "json",
+      success: function(json) {
+        $selectStaff[0].selectize.addOption(json);
+        $selectStaff[0].selectize.refreshOptions(false);
+        if(submissionDataExists()) {
+            // A failure just occurred during submission: we need to replace the previously submitted data
+            if (submissionData.staffId !== undefined) {
+                $selectStaff[0].selectize.setValue(submissionData.staffId);
+            }
+        }
+      }
+  });
 
   // Load the JSON file of the countries
   $.ajax({
@@ -266,8 +287,9 @@ $(function() {
       }
       var userId;
       if (isSubmitAsOtherUserShowing()) {
-          userId = $select_requestee[0].selectize.getValue();
+          userId = $selectRequestee[0].selectize.getValue();
       }
+      var staffId = $selectStaff[0].selectize.getValue();
       var counterpartApproved = $('#approvalCheckbox').is(':checked');
 
       var url = '/api/requests';
@@ -283,6 +305,7 @@ $(function() {
           contentType: "application/x-www-form-urlencoded",
           data: {
               userId: userId,
+              staffId: staffId,
               legs: legs,
               counterpartApproved: counterpartApproved,
           },
