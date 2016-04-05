@@ -4,6 +4,7 @@
 /* global format_dateonly */
 /* global setTimeout */
 /* global DateOnly */
+/* global currentUser */
 
 $(function () {
 	'use strict';
@@ -25,6 +26,7 @@ $(function () {
 		},
 		limit: {
 			onLeave: false,
+			assignedMe: false,
 		},
 	};
 
@@ -35,9 +37,9 @@ $(function () {
     },
 		ajax: {
 			url: '/api/requests',
-			dataSrc: '',
+			dataSrc: ''
 		},
-		order: [[4, 'desc'], [1, 'asc'], [0, 'asc']],
+		order: [[5, 'desc'], [2, 'asc'], [0, 'asc']],
 		dom:
 			"<'row'>" +
 			"<'row'<'col-sm-12'tr>>" +
@@ -53,6 +55,16 @@ $(function () {
 		columns: [
 			{
 				data: 'user',
+				render: function (data) {
+					if (data) {
+						return data.name;
+					} else {
+						return 'None';
+					}
+				},
+			},
+			{
+				data: 'staff',
 				render: function (data) {
 					if (data) {
 						return data.name;
@@ -111,7 +123,7 @@ $(function () {
 
 				visible: false,
 			},
-					],
+		],
 		rowCallback: function (row, data) {
 
 			// Add Bootstrap coloration
@@ -128,13 +140,6 @@ $(function () {
 			// Add click handler
 			(function (data) {
 				$(row).click(function () {
-					// Pass the search query and filter options on to the approval page
-					// so that the next/prev buttons can be set
-					// var query_data = {
-					// 	q: $('#searchBar input[type=text]').val(),
-					// 	filters: searchOptions
-					// }
-					//+ "?" + $.param(query_data);
 					window.location.href = '/requests/' + data._id;
 				});
 			})(data);
@@ -164,27 +169,31 @@ $(function () {
 		return false;
 	});
 
-	/* Custom filtering function which will search data in column four between two values */
+	/* Custom filtering function which will filter data based on search filter */
 	$.fn.dataTable.ext.search.push(
-		function (settings, data) {
-			var approval_status = data[4];
+		function (settings, data, dataIndex) {
+			var approval_status = data[5];
 
 			if (
 				(searchOptions.show.approved && approval_status == 'Approved') ||
 				(searchOptions.show.denied && approval_status == 'Denied') ||
 				(searchOptions.show.pending && approval_status == 'Pending')
 			) {
-				if (searchOptions.limit.onLeave) {
-					var start_date = new DateOnly(data[1]);
-					var end_date = new DateOnly(data[2]);
-					var today = new DateOnly();
-					return today >= start_date && today <= end_date;
-				} else {
-					return true;
+				var rowData = table.rows({order:'original'}).data()[dataIndex];
+				if (!searchOptions.limit.assignedMe ||
+						currentUser._id == rowData.staffId) {
+					if (searchOptions.limit.onLeave) {
+						var start_date = new DateOnly(data[2]);
+						var end_date = new DateOnly(data[3]);
+						var today = new DateOnly();
+						return today >= start_date && today <= end_date;
+					} else {
+						return true;
+					}
 				}
-			} else {
-				return false;
 			}
+
+			return false;
 		}
 	);
 

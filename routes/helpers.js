@@ -74,14 +74,22 @@ module.exports.getEndDate = function (request) {
 
 module.exports.getRequests = function (req, res, options, cb) {
 	if (req.user) {
-		var matchRequest = {};
+		var matchUsers = {};
 		if (options && options._id) {
-			matchRequest._id = mongoose.Types.ObjectId(options._id);
-			console.log('Looking for request with id: ' + matchRequest._id);
+			matchUsers._id = mongoose.Types.ObjectId(options._id);
+			console.log('Looking for request with id: ' + matchUsers._id);
 		}
 
 		if (req.user.access < Access.STAFF) {
-			matchRequest.userId = req.user._id;
+			matchUsers.userId = req.user._id;
+		}
+
+		if (options && options.staffId) {
+			matchUsers.staffId = req.staffId;
+		}
+
+		if (options && options.userId) {
+			matchUsers.userId = req.userId;
 		}
 
 		var matchCountry = {};
@@ -91,7 +99,7 @@ module.exports.getRequests = function (req, res, options, cb) {
 
 		Request.aggregate([
 			{
-				$match: matchRequest,
+				$match: matchUsers,
 			},
 			{
 				// JOIN with the user data belonging to each request

@@ -38,20 +38,27 @@ block content
                     a.small(href='#', data-value='limit.onLeave', tabindex='-1')
                       input(type='checkbox')
                       |  On-leave
+                  li
+                    a.small(href='#', data-value='limit.assignedMe', tabindex='-1')
+                      input(type='checkbox')
+                      |  Assigned to me
               input.form-control(type='text', placeholder='Search...')
 
         #dashboardTable
             table.request-table.table.table-striped.table-hover.table-bordered
               thead
                 tr
-                  th(data-priority="0") Name
-                  th(data-priority="1") Start Date
-                  th(data-priority="2") End Date
-                  th(data-priority="3") Countries
+                  th(data-priority="0") Volunteer
+                  th(data-priority="1") Assigned Staff
+                  th(data-priority="2") Start Date
+                  th(data-priority="3") End Date
+                  th(data-priority="4") Countries
                   th(data-priority="10") Approved
               tbody
 
 block scripts
+  script.
+    var currentUser = !{JSON.stringify(user)};
   script(src='/js/moment.js')
   script(src='/js/datatables.js')
   script(src='/js/fastclick.js')
