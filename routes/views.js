@@ -221,8 +221,6 @@ router.renderApproval = function (req, res) {
 		links: links,
 		messages: req.flash('approvalFlash'),
 		request: req.request,
-		nextRequestId: req.nextRequestId,
-		prevRequestId: req.prevRequestId,
 	});
 };
 
