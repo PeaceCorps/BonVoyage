@@ -36,11 +36,17 @@
 		gulp.watch('./public/scss/**/*.scss', ['scss']);
 	});
 
-	gulp.task('scrape', shell.task([
+	gulp.task('scrape', ['pcWarning', 'countryWarning']);
+
+	gulp.task('pcWarning', shell.task([
 		'node scrapers/pcWarning.js',
+	]));
+
+	gulp.task('countryWarning', shell.task([
 		'node scrapers/countryWarning.js',
 	]));
 
 	gulp.task('default', ['lint', 'scss', 'scss:watch']);
+	gulp.task('test', ['lint', 'scss']);
 	gulp.task('deploy', ['lint', 'scss', 'scrape']);
 })();
