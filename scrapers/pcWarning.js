@@ -1,17 +1,24 @@
 /* jshint node: true */
 'use strict';
 
+var path = require('path');
+var loadEnvironment = require(path.resolve('./config/loadEnvironment'));
+
+if (process.env.NODE_ENV !== 'production') {
+	loadEnvironment();
+}
+
 var fs = require('fs');
 var DateOnly = require('dateonly');
 var GoogleSpreadsheet = require('google-spreadsheet');
 
-var countryFilePath = '../public/data/countryList.json';
+var countryFilePath = path.resolve('./public/data/countryList.json');
 var countryListFile = fs.readFileSync(countryFilePath, 'utf8');
 var countriesDictionary = JSON.parse(countryListFile);
 var allCountryCodes = Object.keys(countriesDictionary);
 
 var SPREADSHEET_KEY = process.env.PC_SPREADSHEET_KEY;
-var OUTPUT_FILE = '../public/data/pcWarnings.json';
+var OUTPUT_FILE = path.resolve('./public/data/pcWarnings.json');
 
 var sheet = new GoogleSpreadsheet(SPREADSHEET_KEY);
 

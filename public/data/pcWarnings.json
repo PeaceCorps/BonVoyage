@@ -6,12 +6,10 @@
       "link": "http://www.google.com",
       "colorClass": "alert-danger",
       "source": "Peace Corps"
-    }
-  ],
-  "BJ": [
+    },
     {
       "type": "Travel Plan",
-      "textOverview": "Travel restricted due to elections from March 2-7",
+      "textOverview": "This is a test to see if the scrapers are running!",
       "link": "https://pclive.peacecorps.gov/pclive/images/docs/travel-notices/STN-Benin.pdf",
       "colorClass": "alert-warning",
       "source": "Peace Corps"
@@ -29,6 +27,14 @@
       "type": "Notice",
       "textOverview": "Travel Plan required for this country",
       "colorClass": "alert-info",
+      "source": "Peace Corps"
+    }
+  ],
+  "BW": [
+    {
+      "type": "Travel Plan",
+      "textOverview": "Hello!",
+      "colorClass": "alert-warning",
       "source": "Peace Corps"
     }
   ]

@@ -1,16 +1,23 @@
 /* jshint node: true */
 'use strict';
 
+var path = require('path');
+var loadEnvironment = require(path.resolve('./config/loadEnvironment'));
+
+if (process.env.NODE_ENV !== 'production') {
+	loadEnvironment();
+}
+
 var request = require('request');
 var cheerio = require('cheerio');
 var moment = require('moment');
 var fs = require('fs');
-var countryFilePath = '../public/data/countryList.json';
+var countryFilePath = path.resolve('./public/data/countryList.json');
 var countryListFile = fs.readFileSync(countryFilePath, 'utf8');
 var countriesDictionary = JSON.parse(countryListFile);
 var allCountryCodes = Object.keys(countriesDictionary);
 var COLUMNS = Object.freeze({ TYPE: 0, DATE: 1, COUNTRY: 2 });
-var OUTPUT_FILE = '../public/data/warnings.json';
+var OUTPUT_FILE = path.resolve('./public/data/warnings.json');
 
 function stripTime(date) {
 	// Convert the date to a Moment object, and
