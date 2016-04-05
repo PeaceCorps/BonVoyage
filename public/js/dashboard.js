@@ -12,7 +12,7 @@ $(function () {
 		return $('div#dashboardTable table');
 	}
 
-	if (FastClick) {
+	if ('FastClick' in window) {
 		FastClick.attach(document.body);
 	}
 
