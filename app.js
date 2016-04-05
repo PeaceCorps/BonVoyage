@@ -55,8 +55,19 @@ app.use(flash()); // use connect-flash for flash messages stored in session
 app.use(function (req, res, next) {
 	res.locals.user = req.user;
 	res.locals.env = process.env.NODE_ENV || 'dev';
-	next();
+	return next();
 });
+
+// Force https
+if (process.env.NODE_ENV == 'production') {
+	app.use(function (req, res, next) {
+		if (req.headers['x-forwarded-proto'] !== 'https') {
+			return res.redirect(['https://', req.get('Host'), req.url].join(''));
+		}
+
+		return next();
+	});
+}
 
 mongoose.connect(process.env.DATABASE_URL);
 mongoose.connection.on('error', function (err) {
