@@ -5,11 +5,7 @@
  * Override environment variables for local development.
  */
 
-var loadEnvironment = require('../config/loadEnvironment');
-
-if (process.env.NODE_ENV !== 'production') {
-	loadEnvironment();
-}
+require(__dirname + '/../setup');
 
 /**
  * Module dependencies.

@@ -39,11 +39,11 @@
 	gulp.task('scrape', ['pcWarning', 'countryWarning']);
 
 	gulp.task('pcWarning', shell.task([
-		'node scrapers/pcWarning.js',
+		'node scrapers/pcWarnings.js',
 	]));
 
-	gulp.task('countryWarning', shell.task([
-		'node scrapers/countryWarning.js',
+	gulp.task('usWarning', shell.task([
+		'node scrapers/usWarnings.js',
 	]));
 
 	gulp.task('default', ['lint', 'scss', 'scss:watch']);

@@ -1,26 +1,22 @@
 /* jshint node: true */
 'use strict';
 
-var loadEnvironment = require('../config/loadEnvironment');
-
-if (process.env.NODE_ENV !== 'production') {
-	loadEnvironment();
-}
+require(__dirname + '/../setup');
 
 var mongoose = require('mongoose');
-var Access = require('../config/access');
+var Access = require(__dirname + '/../config/access');
 var ipsum = require('lorem-ipsum');
 var sprintf = require('sprintf-js').sprintf;
 var moment = require('moment');
 var fs = require('fs');
 var DateOnly = require('dateonly');
-var countryFilePath = '../public/data/countryList.json';
+var countryFilePath = __dirname + '/../public/data/countryList.json';
 var countryListFile = fs.readFileSync(countryFilePath, 'utf8');
 var countriesDictionary = JSON.parse(countryListFile);
 var countryCodes = Object.keys(countriesDictionary);
 var nCountries = countryCodes.length;
-var User = require('../models/user');
-var Request = require('../models/request');
+var User = require(__dirname + '/../models/user');
+var Request = require(__dirname + '/../models/request');
 
 var REQUESTS_TO_GENERATE = 100; // * Math.floor((50 * Math.random()));
 var DRY_RUN = false;
@@ -134,7 +130,7 @@ User.find({  }, function (err, users) {
 	}
 
 	var requests = [];
-	for (var i = 0; i < REQUESTS_TO_GENERATE; i++) {
+	for (i = 0; i < REQUESTS_TO_GENERATE; i++) {
 		var randVolunteer = users[randIndex(volunteers.length)];
 		var randStaff = staff[randIndex(staff.length)];
 		requests.push(generateRequest(randVolunteer, randStaff));

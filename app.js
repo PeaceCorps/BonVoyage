@@ -7,16 +7,16 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
-var views = require('./routes/views');
-var api = require('./routes/api');
+var views = require(__dirname + '/routes/views');
+var api = require(__dirname + '/routes/api');
 var app = express();
 var passport = require('passport');
 var session = require('express-session');
 var flash    = require('connect-flash');
-var Access = require('./config/access');
+var Access = require(__dirname + '/config/access');
 var multer = require('multer');
 var upload = multer({
-	dest: 'uploads/users/',
+	dest: __dirname + '/uploads/users/',
 	limits: {
 		// 1MB is default file size already
 	},
@@ -81,7 +81,8 @@ mongoose.connection.on('error', function (err) {
 	}
 });
 
-require('./config/passport.js')(passport); // pass passport for configuration
+// pass passport for configuration
+require(__dirname + '/config/passport.js')(passport);
 
 // middleware to ensure the user is authenticated.
 // If not, redirect to login page.
@@ -139,9 +140,10 @@ app.get('/profile/:userId?', isLoggedIn,
 // API
 app.get('/api/requests', isLoggedIn,
 	needsAccess(Access.VOLUNTEER), api.getRequests);
-
 app.get('/api/users', isLoggedIn,
 	needsAccess(Access.STAFF), api.getUsers);
+app.get('/api/warnings', isLoggedIn,
+	needsAccess(Access.VOLUNTEER), api.getWarnings);
 
 app.post('/api/requests/:requestId/approve', isLoggedIn,
 	needsAccess(Access.STAFF), api.postApprove);

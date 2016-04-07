@@ -1,9 +1,10 @@
 /* jshint node: true */
 'use strict';
 
-var User = require('../models/user');
-var Request = require('../models/request');
-var Access = require('../config/access');
+var User = require(__dirname + '/../models/user');
+var Request = require(__dirname + '/../models/request');
+var Warning = require(__dirname + '/../models/warning');
+var Access = require(__dirname + '/../config/access');
 var DateOnly = require('dateonly');
 var moment = require('moment');
 var jade = require('jade');
@@ -13,7 +14,7 @@ var twilio = require('twilio');
 var mailgun = require('mailgun-js');
 var mailcomposer = require('mailcomposer');
 var mongoose = require('mongoose');
-var countryFilePath = 'public/data/countryList.json';
+var countryFilePath = __dirname + '/../public/data/countryList.json';
 var countryListFile = fs.readFileSync(countryFilePath, 'utf8');
 var countriesDictionary = JSON.parse(countryListFile);
 
@@ -346,4 +347,26 @@ module.exports.sendSMS = function (sendTo, body, callback) {
 			}
 		});
 	}
+};
+
+module.exports.fetchWarnings = function (callback) {
+	Warning.find({}, function (err, warnings) {
+		if (err) {
+			console.error('An error occurred while fetching warnings:');
+			console.error(err);
+			return callback(err);
+		} else {
+			var countryToWarnings = {};
+
+			for (var i = 0; i < warnings.length; i++) {
+				if (countryToWarnings[warnings[i].countryCode] === undefined) {
+					countryToWarnings[warnings[i].countryCode] = [];
+				}
+
+				countryToWarnings[warnings[i].countryCode].push(warnings[i]);
+			}
+
+			return callback(null, countryToWarnings);
+		}
+	});
 };

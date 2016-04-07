@@ -8,10 +8,9 @@ var ISO_FORMAT = 'YYYY-MM-DD';
 var DISPLAY_FORMAT = "MMM DD, YYYY";
 var PICKADATE_DISPLAY_FORMAT = "mmm dd, yyyy";
 var warnings;
-var pcWarnings;
-var allWarnings;
 
 function format_time(time, format) {
+	'use strict';
 	if (time === undefined) {
 		return "None";
 	} else {
@@ -20,6 +19,7 @@ function format_time(time, format) {
 }
 
 function format_dateonly(date) {
+	'use strict';
 	if (date === undefined) {
 		return "None";
 	} else {
@@ -30,21 +30,8 @@ function format_dateonly(date) {
 
 // http://stackoverflow.com/questions/196972/convert-string-to-title-case-with-javascript
 function toTitleCase(str) {
-    return str.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
-}
-
-function combineWarnings(w, pcW) {
-	var returnedWarnings = w;
-	var pcCountries = Object.keys(pcW);
-	for(var i = 0; i < pcCountries.length; i++) {
-		var cc = pcCountries[i];
-		if(returnedWarnings[cc] === undefined) {
-			returnedWarnings[cc] = pcW[cc];
-		} else {
-			returnedWarnings[cc] = returnedWarnings[cc].concat(pcW[cc]);
-		}
-	}
-	return returnedWarnings;
+	'use strict';
+	return str.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
 }
 
 /*
@@ -53,46 +40,26 @@ function combineWarnings(w, pcW) {
  * will be cached.
  */
 function getWarnings(callback) {
-	// Laze load the warnings and the Peace Corps warnings from the server
-	if (allWarnings) {
-		if (callback) {
-			callback(allWarnings);
-		}
+	'use strict';
+	// Laze load the warnings from the server
+	if(!warnings) {
+		$.ajax({
+			url: "/api/warnings",
+			dataType: "json",
+			success: function(w) {
+				warnings = w;
+				if(callback) {
+					callback(warnings);
+				}
+			}
+		});
 	} else {
-		if(!warnings) {
-			$.ajax({
-				url: "/data/warnings.json",
-				dataType: "json",
-				success: function(w) {
-					warnings = w;
-					if (pcWarnings) {
-						allWarnings = combineWarnings(warnings, pcWarnings);
-					}
-					if(callback) {
-						callback(allWarnings);
-					}
-				}
-			});
-		}
-		if(!pcWarnings) {
-			$.ajax({
-				url: "/data/pcWarnings.json",
-				dataType: "json",
-				success: function(pcW) {
-					pcWarnings = pcW;
-					if (warnings) {
-						allWarnings = combineWarnings(warnings, pcWarnings);
-					}
-					if(callback) {
-						callback(allWarnings);
-					}
-				}
-			});
-		}
+		callback(warnings);
 	}
 }
 
 $(function() {
+	'use strict';
 	$('#logout').click(function() {
 		$.ajax({
 			method: "POST",

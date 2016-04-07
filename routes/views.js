@@ -3,11 +3,8 @@
 
 var express = require('express');
 var router = express.Router();
-var Access = require('../config/access');
-var fs = require('fs');
-var helpers = require('./helpers');
-var warnings;
-var pcWarnings;
+var Access = require(__dirname + '/../config/access');
+var helpers = require(__dirname + '/helpers');
 
 router.index = function (req, res) {
 	res.redirect('/login');
@@ -159,68 +156,55 @@ router.renderEditRequest = function (req, res) {
 };
 
 router.renderApproval = function (req, res) {
-	if (!warnings) {
-		warnings = JSON.parse(fs.readFileSync('public/data/warnings.json', 'utf8'));
-	}
+	helpers.fetchWarnings(function (err, warnings) {
+		if (!err) {
+			// Merge warnings to requests
+			for (var i = 0; i < req.request.legs.length; i++) {
+				var cc = req.request.legs[i].countryCode;
+				req.request.legs[i].warnings = (warnings[cc] ? warnings[cc] : []);
+			}
 
-	if (!pcWarnings) {
-		pcWarnings = JSON.parse(
-			fs.readFileSync('public/data/pcWarnings.json', 'utf8')
-		);
-	}
+			if (req.request.status.isPending === false) {
+				var flash = {};
+				if (req.request.status.isApproved === false) {
+					flash = {
+						text: 'This request has been denied.',
+						class: 'danger',
+					};
+				} else {
+					flash = {
+						text: 'This request has been approved.',
+						class: 'success',
+					};
+				}
 
-	// Merge warnings to requests
-	for (var i = 0; i < req.request.legs.length; i++) {
-		var cc = req.request.legs[i].countryCode;
-		var allWarnings = [];
-		if (warnings[cc]) {
-			allWarnings = warnings[cc];
-		}
+				req.flash('approvalFlash', flash);
+			} else {
+				var pendingFlash = {
+					text: 'This request is currently pending.',
+					class: 'warning',
+				};
+				req.flash('approvalFlash', pendingFlash);
+			}
 
-		if (pcWarnings[cc]) {
-			allWarnings = allWarnings.concat(pcWarnings[cc]);
-		}
+			var links = [
+				{ text: 'Dashboard', href: '/dashboard' },
+				{ text: 'Submit a Request', href: '/dashboard/submit' },
+			];
+			if (req.user.access >= Access.STAFF) {
+				links.push({ text: 'Users', href: '/users' });
+				links.push({ text: 'Add Users', href: '/users/add' });
+			}
 
-		req.request.legs[i].warnings = allWarnings;
-	}
-
-	if (req.request.status.isPending === false) {
-		var flash = {};
-		if (req.request.status.isApproved === false) {
-			flash = {
-				text: 'This request has been denied.',
-				class: 'danger',
-			};
+			res.render('approval.jade', {
+				title: 'Request Approval',
+				links: links,
+				messages: req.flash('approvalFlash'),
+				request: req.request,
+			});
 		} else {
-			flash = {
-				text: 'This request has been approved.',
-				class: 'success',
-			};
+			throw err;
 		}
-
-		req.flash('approvalFlash', flash);
-	} else {
-		var pendingFlash = {
-			text: 'This request is currently pending.',
-			class: 'warning',
-		};
-		req.flash('approvalFlash', pendingFlash);
-	}
-
-	var links = [
-		{ text: 'Dashboard', href: '/dashboard' },
-		{ text: 'Submit a Request', href: '/dashboard/submit' },
-	];
-	if (req.user.access >= Access.STAFF) {
-		links.push({ text: 'Users', href: '/users' });
-		links.push({ text: 'Add Users', href: '/users/add' });
-	}
-
-	res.render('approval.jade', {
-		title: 'Request Approval',
-		links: links,
-		messages: req.flash('approvalFlash'),
-		request: req.request,
 	});
 };
 
