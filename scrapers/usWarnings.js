@@ -1,22 +1,27 @@
 /* jshint node: true */
 'use strict';
 
+require(__dirname + '/../setup');
+
 var request = require('request');
 var cheerio = require('cheerio');
-var moment = require('moment');
 var fs = require('fs');
-var countryFilePath = '../public/data/countryList.json';
+
+var storeWarnings = require(__dirname + '/storeWarnings');
+
+var countryFilePath = __dirname + '/../public/data/countryList.json';
 var countryListFile = fs.readFileSync(countryFilePath, 'utf8');
 var countriesDictionary = JSON.parse(countryListFile);
 var allCountryCodes = Object.keys(countriesDictionary);
-var COLUMNS = Object.freeze({ TYPE: 0, DATE: 1, COUNTRY: 2 });
-var OUTPUT_FILE = '../public/data/warnings.json';
 
-function stripTime(date) {
-	// Convert the date to a Moment object, and
-	// remove the time component by adjusting to the local time zone
-	return moment(date, 'MMMM DD, YYYY').startOf('day');
-}
+var COLUMNS = Object.freeze({ TYPE: 0, DATE: 1, COUNTRY: 2 });
+
+//
+// function stripTime(date) {
+// 	// Convert the date to a Moment object, and
+// 	// remove the time component by adjusting to the local time zone
+// 	return moment(date, 'MMMM DD, YYYY').startOf('day');
+// }
 
 function matchCountryCodes(countryText) {
 	// Array to track all the matched country codes
@@ -54,9 +59,7 @@ function parseText(text, index) {
 		case COLUMNS.TYPE:
 			return text; // 'Alert' or 'Warning'
 		case COLUMNS.DATE:
-
-			// The date that the alert/warning was released, converted to a JS Date
-			return stripTime(textLowercase).toDate();
+			return text;
 		case COLUMNS.COUNTRY:
 
 			// Crop out the country from the text
@@ -73,16 +76,6 @@ function parseText(text, index) {
 		default:
 			throw 'Table index out of range';
 	}
-}
-
-function storeWarnings(warnings) {
-	var fs = require('fs');
-	var json = JSON.stringify(warnings, null, 2);
-	fs.writeFile(OUTPUT_FILE, json, function (err) {
-		if (err) {
-			return console.log(err);
-		}
-	});
 }
 
 function getWarningText(warning, callback) {
@@ -103,8 +96,7 @@ function getWarningText(warning, callback) {
 
 request('http://travel.state.gov/content/passports/en/alertswarnings.html',
 	function (error, response, body) {
-	// This hash table holds the data that we will store in JSON later
-	var warnings = {};
+	var usWarnings = [];
 
 	if (!error && response.statusCode == 200) {
 		var $ = cheerio.load(body);
@@ -128,6 +120,7 @@ request('http://travel.state.gov/content/passports/en/alertswarnings.html',
 
 			var countryCodes = matchCountryCodes(rawData[COLUMNS.COUNTRY]);
 			var warning = {
+				countryCode: undefined,
 				type: rawData[COLUMNS.TYPE],
 				startDate: rawData[COLUMNS.DATE],
 				link: link,
@@ -139,17 +132,14 @@ request('http://travel.state.gov/content/passports/en/alertswarnings.html',
 			getWarningText(warning, function () {
 				rowsToParse--;
 
-				// Insert this warning at each of the match countries
+				// Insert this warning at each of the countries that the warning is for
 				for (var i = 0; i < countryCodes.length; i++) {
-					if (warnings[countryCodes[i]] === undefined) {
-						warnings[countryCodes[i]] = [];
-					}
-
-					warnings[countryCodes[i]].push(warning);
+					warning.countryCode = countryCodes[i];
+					usWarnings.push(warning);
 				}
 
 				if (rowsToParse === 0) {
-					storeWarnings(warnings);
+					storeWarnings(usWarnings);
 				}
 			});
 		});

@@ -1,11 +1,7 @@
 /* jshint node: true */
 'use strict';
 
-var loadEnvironment = require('../config/loadEnvironment');
-
-if (process.env.NODE_ENV !== 'production') {
-	loadEnvironment();
-}
+require(__dirname + '/../setup');
 
 var mongoose = require('mongoose');
 
@@ -16,7 +12,7 @@ mongoose.connection.on('error', function (err) {
 	}
 });
 
-var User = require('../models/user');
+var User = require(__dirname + '/../models/user');
 
 var userbase = [
 	{

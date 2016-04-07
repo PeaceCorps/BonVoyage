@@ -4,13 +4,13 @@
 
 var express = require('express');
 var router = express.Router();
-var User = require('../models/user');
-var Request = require('../models/request');
-var Token = require('../models/token');
-var Access = require('../config/access');
+var User = require(__dirname + '/../models/user');
+var Request = require(__dirname + '/../models/request');
+var Token = require(__dirname + '/../models/token');
+var Access = require(__dirname + '/../config/access');
 var fs = require('fs');
 var randtoken = require('rand-token');
-var countryFilePath = './public/data/countryList.json';
+var countryFilePath = __dirname + '/../public/data/countryList.json';
 var countryListFile = fs.readFileSync(countryFilePath, 'utf8');
 var countriesDictionary = JSON.parse(countryListFile);
 var helpers = require('./helpers');
@@ -89,6 +89,16 @@ router.getUsers = function (req, res) {
 		}
 
 		res.send(users);
+	});
+};
+
+router.getWarnings = function (req, res) {
+	helpers.fetchWarnings(function (err, requests) {
+		if (err) {
+			console.error(err);
+		}
+
+		res.send(requests);
 	});
 };
 

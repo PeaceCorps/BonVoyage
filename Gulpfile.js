@@ -5,6 +5,7 @@
 	var sass = require('gulp-sass');
 	var jshint = require('gulp-jshint');
 	var jscs = require('gulp-jscs');
+	var shell = require('gulp-shell');
 
 	gulp.task('lint', function () {
 		return gulp.src([
@@ -35,6 +36,17 @@
 		gulp.watch('./public/scss/**/*.scss', ['scss']);
 	});
 
+	gulp.task('scrape', ['pcWarning', 'countryWarning']);
+
+	gulp.task('pcWarning', shell.task([
+		'node scrapers/pcWarnings.js',
+	]));
+
+	gulp.task('usWarning', shell.task([
+		'node scrapers/usWarnings.js',
+	]));
+
 	gulp.task('default', ['lint', 'scss', 'scss:watch']);
-	gulp.task('deploy', ['lint', 'scss']);
+	gulp.task('test', ['lint', 'scss']);
+	gulp.task('deploy', ['lint', 'scss', 'scrape']);
 })();

@@ -2,13 +2,13 @@
 'use strict';
 
 var LocalStrategy = require('passport-local').Strategy;
-var helpers = require('../routes/helpers');
+var helpers = require(__dirname + '/../routes/helpers');
 
 // load user model
-var User = require('../models/user');
-var Token = require('../models/token');
+var User = require(__dirname + '/../models/user');
+var Token = require(__dirname + '/../models/token');
 
-var Access = require('./access');
+var Access = require(__dirname + '/access');
 
 module.exports = function (passport) {
 
@@ -108,7 +108,7 @@ module.exports = function (passport) {
 									var subject = 'Peace Corps BonVoyage Registration Confirmation';
 									var map = {
 										name: token.name.split(' ')[0],
-										button: 'http://localhost:3000',
+										button: process.env.BONVOYAGE_DOMAIN,
 									};
 
 									// asynchronous
