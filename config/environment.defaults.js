@@ -33,6 +33,8 @@ module.exports = {
 	TWILIO_SID: undefined,
 	MAILGUN_KEY: undefined,
 
+	BONVOYAGE_EMAIL: 'bonvoyage@peacecorps.me',
+
 	// The public-facing domain where this site is hosted: this will be seen
 	// when links are provided in email and SMS.
 	BONVOYAGE_DOMAIN: 'http://localhost:3000',

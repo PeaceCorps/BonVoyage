@@ -76,7 +76,6 @@ module.exports = function (passport) {
 									}));
 								}
 
-								var sendFrom = 'Peace Corps <team@projectdelta.io>';
 								var sendTo = [token.user.email];
 								var subject = 'Peace Corps BonVoyage Registration Confirmation';
 								var map = {
@@ -86,7 +85,7 @@ module.exports = function (passport) {
 
 								// send the email async
 								process.nextTick(function () {
-									helpers.sendTemplateEmail(sendFrom, sendTo, subject, 'welcome', map);
+									helpers.sendTemplateEmail(sendTo, subject, 'welcome', map);
 								});
 
 								done(null, updatedUser);

@@ -194,7 +194,7 @@ module.exports.legsToString = function (legs) {
 module.exports.sendEmail = function (sendFrom, sendTo, subject, text,
 	callback) {
 	var data = {
-		from: sendFrom,
+		from: process.env.BONVOYAGE_EMAIL,
 		to: sendTo,
 		subject: subject,
 		text: text,
@@ -214,7 +214,7 @@ module.exports.sendEmail = function (sendFrom, sendTo, subject, text,
 	}
 };
 
-module.exports.sendTemplateEmail = function (sendFrom, sendTo, subject, template, map, callback) {
+module.exports.sendTemplateEmail = function (sendTo, subject, template, map, callback) {
 	var html = jade.renderFile(path.join(__dirname, '../email', template + '.jade'), map);
 
 	var sendMimeCallback = function (sendError) {
@@ -245,7 +245,7 @@ module.exports.sendTemplateEmail = function (sendFrom, sendTo, subject, template
 
 	for (var recipient in sendTo) {
 		var data = {
-			from: sendFrom,
+			from: process.env.BONVOYAGE_EMAIL,
 			to: sendTo[recipient],
 			subject: subject,
 			html: html,

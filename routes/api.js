@@ -598,7 +598,6 @@ router.postApproval = function (req, res) {
 			// Submit the comment about this approval
 			helpers.postComment(doc._id, 'Administrator', null, commentMessage, function () {
 				// Send notifications
-				var sendFrom = 'Peace Corps <team@projectdelta.io>';
 				var sendTo = [doc.volunteer.email];
 				var subject = 'Peace Corps BonVoyage Request ' + (approvalFormBody.approval ? 'Approved' : 'Denied');
 				var details = helpers.legsToString(doc.legs);
@@ -612,7 +611,7 @@ router.postApproval = function (req, res) {
 
 				// asynchronous
 				process.nextTick(function () {
-					helpers.sendTemplateEmail(sendFrom, sendTo, subject,
+					helpers.sendTemplateEmail(sendTo, subject,
 						(approvalFormBody.approval ? 'approve' : 'deny'), map);
 
 					if (doc.volunteer.phones) {
@@ -690,7 +689,6 @@ router.reset = function (req, res) {
 						helpers.sendJSON(res, { redirect: '/reset' });
 					}
 
-					var sendFrom = 'Peace Corps <team@projectdelta.io>';
 					var sendTo = [user.email];
 					var subject = 'Peace Corps BonVoyage Password Reset Request';
 					var map = {
@@ -700,7 +698,7 @@ router.reset = function (req, res) {
 
 					// asynchronous
 					process.nextTick(function () {
-						helpers.sendTemplateEmail(sendFrom, sendTo, subject, 'password', map);
+						helpers.sendTemplateEmail(sendTo, subject, 'password', map);
 					});
 
 					req.flash('loginFlash', {
@@ -1065,7 +1063,6 @@ router.postUsers = function (req, res) {
 						return helpers.sendJSON(res, { redirect: '/users/add' });
 					}
 
-					var sendFrom = 'Peace Corps <team@projectdelta.io>';
 					var subject = 'Peace Corps BonVoyage Registration';
 
 					// Send template emails in parallel
@@ -1077,7 +1074,7 @@ router.postUsers = function (req, res) {
 								name: capitalizeFirstLetter(user.name.toLowerCase().split(' ')[0]),
 								button: process.env.BONVOYAGE_DOMAIN + '/register/' + token.token,
 							};
-							helpers.sendTemplateEmail(sendFrom, sendTo, subject, 'register', map, callback);
+							helpers.sendTemplateEmail(sendTo, subject, 'register', map, callback);
 						}, function (err) {
 
 							if (err) {
