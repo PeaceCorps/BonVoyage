@@ -15,8 +15,7 @@ var helpers = require(__dirname + '/../routes/helpers');
 mongoose.connect(mongoConnection.getConnectionString());
 
 function removeAll(newBatchUUID) {
-	console.log('Removing all warnings except batch: ' +
-	 newBatchUUID);
+	console.log('Removing all warnings except batch: ' + newBatchUUID);
 	Warning.find({ source: source, batchUUID: { $ne: newBatchUUID } })
 		.remove()
 		.exec(function (err, response) {
@@ -135,7 +134,7 @@ var storeWarnings = function (warnings) {
 				if (isExistingWarning) {
 					console.log('Updating an existing warning.');
 				} else {
-					notifyWarnings.push(doc);
+					notifyWarnings.push(warnings[i]);
 
 					if (count == 0) {
 						onFinish(warnings[i], source);
