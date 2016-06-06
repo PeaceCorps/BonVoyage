@@ -83,26 +83,28 @@ var storeWarnings = function (warnings) {
 		if (count === 0) {
 			// notifyWarnings is now populated
 			for (var j = 0; j < notifyWarnings.length; j++) {
-				var startDate = notifyWarnings[j].startDate;
+				if (notifyWarnings[j]) {
+					var startDate = notifyWarnings[j].startDate;
 
-				// if the request has leg that visits the country and has start date after the start date
-				// of the warning, then notify
-				Request.find({ legs:
-					{ $elemMatch:
-						{
-							startDate: { $gte: startDate },
-							countryCode: notifyWarnings[j].countryCode,
+					// if the request has leg that visits the country and has start date after the start date
+					// of the warning, then notify
+					Request.find({ legs:
+						{ $elemMatch:
+							{
+								startDate: { $gte: startDate },
+								countryCode: notifyWarnings[j].countryCode,
+							},
 						},
-					},
-				}, function (err, requests) {
-					if (err) {
-						console.error(err);
-					}
+					}, function (err, requests) {
+						if (err) {
+							console.error(err);
+						}
 
-					if (requests) {
-						notifyAll(requests);
-					}
-				});
+						if (requests) {
+							notifyAll(requests);
+						}
+					});
+				}
 			}
 
 			// removing all old warnings
