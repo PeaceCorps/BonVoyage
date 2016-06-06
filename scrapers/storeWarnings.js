@@ -78,7 +78,7 @@ var storeWarnings = function (warnings) {
 	var notifyWarnings = [];
 
 	function onFinish(doc, source) {
-		notifyWarnings.append(doc);
+		notifyWarnings.push(doc);
 
 		if (count === 0) {
 			// notifyWarnings is now populated
