@@ -16,15 +16,15 @@ mongoose.connect(mongoConnection.getConnectionString());
 
 function removeAll(newBatchUUID) {
 	console.log('Removing all warnings except batch: ' + newBatchUUID);
-	Warning.find({ source: source, batchUUID: { $ne: newBatchUUID } })
+	Warning.find({ batchUUID: { $ne: newBatchUUID } })
 		.remove()
 		.exec(function (err, response) {
 		if (err) {
 			console.error('An error occurred while attempting to remove ' +
-				source + ' warnings.');
+				' warnings.');
 			throw err;
 		} else {
-			console.log('Removed ' + response.result.n + ' ' + source + ' warnings.');
+			console.log('Removed ' + response.result.n + ' warnings.');
 			mongoose.connection.close();
 		}
 	});
