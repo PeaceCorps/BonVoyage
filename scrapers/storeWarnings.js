@@ -14,9 +14,9 @@ var helpers = require(__dirname + '/../routes/helpers');
 
 mongoose.connect(mongoConnection.getConnectionString());
 
-function removeAll(newBatchUUID, source) {
-	console.log('Removing all ' + source +
-		' warnings except batch: ' + newBatchUUID);
+function removeAll(newBatchUUID) {
+	console.log('Removing all warnings except batch: ' +
+	 newBatchUUID);
 	Warning.find({ source: source, batchUUID: { $ne: newBatchUUID } })
 		.remove()
 		.exec(function (err, response) {
@@ -78,38 +78,34 @@ var storeWarnings = function (warnings) {
 	var notifyWarnings = [];
 
 	function onFinish(doc, source) {
-		notifyWarnings.push(doc);
+		// notifyWarnings is now populated
+		for (var j = 0; j < notifyWarnings.length; j++) {
+			if (notifyWarnings[j]) {
+				var startDate = notifyWarnings[j].startDate;
 
-		if (count === 0) {
-			// notifyWarnings is now populated
-			for (var j = 0; j < notifyWarnings.length; j++) {
-				if (notifyWarnings[j]) {
-					var startDate = notifyWarnings[j].startDate;
-
-					// if the request has leg that visits the country and has start date after the start date
-					// of the warning, then notify
-					Request.find({ legs:
-						{ $elemMatch:
-							{
-								startDate: { $gte: startDate },
-								countryCode: notifyWarnings[j].countryCode,
-							},
+				// if the request has leg that visits the country and has start date after the start date
+				// of the warning, then notify
+				Request.find({ legs:
+					{ $elemMatch:
+						{
+							startDate: { $gte: startDate },
+							countryCode: notifyWarnings[j].countryCode,
 						},
-					}, function (err, requests) {
-						if (err) {
-							console.error(err);
-						}
+					},
+				}, function (err, requests) {
+					if (err) {
+						console.error(err);
+					}
 
-						if (requests) {
-							notifyAll(requests);
-						}
-					});
-				}
+					if (requests) {
+						notifyAll(requests);
+					}
+				});
 			}
-
-			// removing all old warnings
-			removeAll(batchUUID, source);
 		}
+
+		// removing all old warnings
+		removeAll(batchUUID);
 	}
 
 	if (count > 0) {
@@ -139,8 +135,11 @@ var storeWarnings = function (warnings) {
 				if (isExistingWarning) {
 					console.log('Updating an existing warning.');
 				} else {
-					// notify staff
-					onFinish(warnings[i], source);
+					notifyWarnings.push(doc);
+
+					if (count == 0) {
+						onFinish(warnings[i], source);
+					}
 				}
 			});
 		}
