@@ -10,7 +10,7 @@ var Warning = require(__dirname + '/../models/warning');
 var Request = require(__dirname + '/../models/request');
 var User = require(__dirname + '/../models/user');
 var mongoConnection = require(__dirname + '/../config/mongoConnection');
-var helpers = require(__dirname + '../routes/helpers');
+var helpers = require(__dirname + '/../routes/helpers');
 
 mongoose.connect(mongoConnection.getConnectionString());
 
