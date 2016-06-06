@@ -71,41 +71,41 @@ function notifyAll(requests) {
 	}
 }
 
+function onFinish(notifyWarnings) {
+	// notifyWarnings is now populated
+	for (var j = 0; j < notifyWarnings.length; j++) {
+		if (notifyWarnings[j]) {
+			var startDate = notifyWarnings[j].startDate;
+
+			// if the request has leg that visits the country and has start date after the start date
+			// of the warning, then notify
+			Request.find({ legs:
+				{ $elemMatch:
+					{
+						startDate: { $gte: startDate },
+						countryCode: notifyWarnings[j].countryCode,
+					},
+				},
+			}, function (err, requests) {
+				if (err) {
+					console.error(err);
+				}
+
+				if (requests) {
+					notifyAll(requests);
+				}
+			});
+		}
+	}
+
+	// removing all old warnings
+	removeAll(batchUUID);
+}
+
 var storeWarnings = function (warnings) {
 	var batchUUID = uuid.v1();
 	var count = warnings.length;
 	var notifyWarnings = [];
-
-	function onFinish(doc, source) {
-		// notifyWarnings is now populated
-		for (var j = 0; j < notifyWarnings.length; j++) {
-			if (notifyWarnings[j]) {
-				var startDate = notifyWarnings[j].startDate;
-
-				// if the request has leg that visits the country and has start date after the start date
-				// of the warning, then notify
-				Request.find({ legs:
-					{ $elemMatch:
-						{
-							startDate: { $gte: startDate },
-							countryCode: notifyWarnings[j].countryCode,
-						},
-					},
-				}, function (err, requests) {
-					if (err) {
-						console.error(err);
-					}
-
-					if (requests) {
-						notifyAll(requests);
-					}
-				});
-			}
-		}
-
-		// removing all old warnings
-		removeAll(batchUUID);
-	}
 
 	if (count > 0) {
 		var source = warnings[0].source;
@@ -136,8 +136,8 @@ var storeWarnings = function (warnings) {
 				} else {
 					notifyWarnings.push(warnings[i]);
 
-					if (count == 0) {
-						onFinish(warnings[i], source);
+					if (count === 0) {
+						onFinish(notifyWarnings);
 					}
 				}
 			});
