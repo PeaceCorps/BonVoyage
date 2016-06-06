@@ -78,13 +78,6 @@ var storeWarnings = function (warnings) {
 	var notifyWarnings = [];
 
 	function onFinish(doc, source) {
-		if (err) {
-			console.error('(Batch: ' + batchUUID +
-				'): Inserting the following warning failed:');
-			console.error(doc);
-			console.error(err);
-		}
-
 		notifyWarnings.append(doc);
 
 		if (count === 0) {
@@ -135,8 +128,10 @@ var storeWarnings = function (warnings) {
 			{ upsert: true },
 			function (err, isExistingWarning) {
 				if (err) {
-					console.log('An error occurred while attempting to update ' +
-						source + ' warnings.');
+					console.error('(Batch: ' + batchUUID +
+						'): Inserting the following warning failed:');
+					console.error(isExistingWarning);
+					console.error(err);
 				}
 
 				if (isExistingWarning) {
