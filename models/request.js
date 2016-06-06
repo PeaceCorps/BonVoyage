@@ -14,7 +14,6 @@ var requestSchema = mongoose.Schema({
 	},
 	reviewer: {
 		type: mongoose.Schema.Types.ObjectId,
-		required: true,
 		ref: 'user',
 	},
 	status: {

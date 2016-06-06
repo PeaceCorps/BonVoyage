@@ -26,6 +26,7 @@ $(function () {
 		},
 		limit: {
 			onLeave: false,
+			archived: false,
 			assignedMe: false,
 		},
 	};
@@ -69,7 +70,7 @@ $(function () {
 					if (data) {
 						return data.name;
 					} else {
-						return 'None';
+						return 'None (Archived)';
 					}
 				},
 			},
@@ -180,8 +181,12 @@ $(function () {
 				(searchOptions.show.pending && approval_status == 'Pending')
 			) {
 				var rowData = table.rows({order:'original'}).data()[dataIndex];
-				if (!searchOptions.limit.assignedMe ||
-						currentUser._id == rowData.staff._id) {
+				// console.log(rowData.reviewer && rowData.reviewer._id);
+				// console.log(searchOptions.limit.archived);
+				if (
+					(!searchOptions.limit.archived || rowData.reviewer === null) &&
+					(!searchOptions.limit.assignedMe || (rowData.reviewer !== null && currentUser._id == rowData.reviewer._id))
+				) {
 					if (searchOptions.limit.onLeave) {
 						var start_date = new DateOnly(data[2]);
 						var end_date = new DateOnly(data[3]);

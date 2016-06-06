@@ -8,8 +8,10 @@
         border: 2px solid black;
     }
     #headerName {
+      margin-bottom: 30px;
+      h2 {
         font-weight: 600;
-        margin-bottom: 30px;
+      }
     }
     form {
         max-width: 300px;
@@ -42,5 +44,8 @@
             padding-left: 0;
           }
         }
+    }
+    .pendingLabelBox {
+      text-align: center;
     }
 }

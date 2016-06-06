@@ -23,3 +23,9 @@
 
 #htmlwrapper #request-submit {
   margin-top: 10px; }
+
+#htmlwrapper .invalid-form {
+  border: 2px solid #d9534f; }
+
+#htmlwrapper .valid-form {
+  border: 2px solid #5cb85c; }

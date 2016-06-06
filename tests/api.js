@@ -47,8 +47,7 @@ var endpoints = {
 			{ url: '/api/warnings', access: Access.VOLUNTEER },
 		],
 		POST: [
-			{ url: '/api/requests/:requestId/approve', access: Access.STAFF },
-			{ url: '/api/requests/:requestId/deny', access: Access.STAFF },
+			{ url: '/api/requests/:requestId/approval', access: Access.STAFF },
 			{ url: '/api/requests/:requestId/comments', access: Access.VOLUNTEER },
 			{ url: '/api/users/:userId', access: Access.VOLUNTEER },
 			{ url: '/api/requests', access: Access.VOLUNTEER },
@@ -64,7 +63,7 @@ var endpoints = {
 	NO_LOGIN: [
 		{ url: '/' },
 		{ url: '/login' },
-		{ url: '/register/:email/:token' },
+		{ url: '/register/:token' },
 		{ url: '/reset' },
 		{ url: '/reset/:token' },
 	],
@@ -251,13 +250,23 @@ describe('Other endpoints redirect when logged in', function () {
 	});
 });
 
-describe('/errors', function () {
-	it.skip('Redirects to the error page', function (done) {
+describe('error page renders', function () {
+	it('Redirects to the error page', function (done) {
 		request(app)
 			.get('/some/nonexistant/page')
-			.expect(302)
+			.expect(404)
 			.expect(function (res) {
-				assert.equal(res.header.location, '/errors/404');
+				assert(res.text.indexOf('errorContainer') > -1);
+			})
+			.end(done);
+	});
+
+	it('Redirects to the error page when logged in', function (done) {
+		agents.volunteer.request
+			.get('/some/nonexistant/page')
+			.expect(404)
+			.expect(function (res) {
+				assert(res.text.indexOf('errorContainer') > -1);
 			})
 			.end(done);
 	});
@@ -360,7 +369,7 @@ describe('GET /api/requests', function () {
 				assert(testRequest.comments.length === 1);
 				assert(testRequest.comments[0].name === 'Patrick Choquette');
 				assert(testRequest.comments[0].user.name === 'Patrick Choquette');
-				assert(testRequest.comments[0].content === 'I approve of this request.');
+				assert(testRequest.comments[0].content.length > 0);
 				assert.isString(testRequest.comments[0]._id);
 				assert.isString(testRequest.comments[0].timestamp);
 				assert(testRequest.counterpartApproved === true);
@@ -560,12 +569,14 @@ describe('GET /api/users', function () {
 				assert(userList.filter(function (u) {
 					return u.access === Access.ADMIN;
 				}).length > 0, 'At least one admin is returned');
+
+				assert(userList.filter(function (u) {
+					return u.countryCode === agents.volunteer.user.countryCode;
+				}).length === userList.length, 'All returned users are from the volunteer\'s country');
+
 				done();
 			});
 	});
-
-	// Waiting on issue #58 for spec of this endpoint
-	it('limits to same country for volunteers');
 
 	it('minAccess filters to just admins', function (done) {
 		verifyReturnedUserAccess('/api/users?minAccess=2',
@@ -703,11 +714,12 @@ describe('GET /api/warnings', function () {
 	});
 });
 
-describe('POST /api/requests/:requestId/approve', function () {
+describe('POST /api/requests/:requestId/approval', function () {
 	it('marks request as approved', function (done) {
 		async.eachSeries(requests, function (request, cb) {
 			agents.admin.request
-			.post('/api/requests/' + request._id + '/approve')
+			.post('/api/requests/' + request._id + '/approval')
+			.send({ approval: true, comment: '', reviewer: request.reviewer })
 			.expect(200)
 				.end(function (err) {
 					if (err) {
@@ -723,19 +735,18 @@ describe('POST /api/requests/:requestId/approve', function () {
 							}
 
 							assert(res.body.status.isApproved === true);
-							assert(res.body.status.isPending === false);
+							assert(res.body.status.isPending === true);
 							cb();
 						});
 				});
 		}, done);
 	});
-});
 
-describe('POST /api/requests/:requestId/deny', function () {
 	it('marks request as denied', function (done) {
 		async.eachSeries(requests, function (request, cb) {
 			agents.admin.request
-				.post('/api/requests/' + request._id + '/deny')
+				.post('/api/requests/' + request._id + '/approval')
+				.send({ approval: false, comment: '', reviewer: request.reviewer })
 				.expect(200)
 				.end(function (err) {
 					if (err) {
@@ -751,7 +762,7 @@ describe('POST /api/requests/:requestId/deny', function () {
 							}
 
 							assert(res.body.status.isApproved === false);
-							assert(res.body.status.isPending === false);
+							assert(res.body.status.isPending === true);
 
 							cb();
 						});
@@ -779,9 +790,8 @@ describe('POST /api/requests/:requestId/comments', function () {
 								return cb(err);
 							}
 
-							// Initially there is just one example comment
-							assert(res.body.comments.length === 2);
-							var returnedComment = res.body.comments[1];
+							var returnedComment = res.body.comments[res.body.comments.length - 1];
+							assert(returnedComment.content === commentString);
 							assert(returnedComment.name === agents.admin.user.name);
 							assert(returnedComment.content === commentString);
 							assert.isString(returnedComment.timestamp);
@@ -1096,6 +1106,14 @@ describe('POST /api/login', function () {
 			.end(loginFailed(done));
 	});
 
+	it('fails with pending users', function (done) {
+		agent
+			.post('/api/login')
+			.send({ email: 'jake@test.com', password: 'jake' })
+			.expect(302)
+			.end(loginFailed(done));
+	});
+
 	it('fails with missing email', function (done) {
 		agent
 			.post('/api/login')
@@ -1321,7 +1339,6 @@ describe('POST /api/requests/:requestId', function () {
 						assert(res.body.legs.length === 1);
 						assert(res.body.legs[0].startDate == 20160309);
 						assert(res.body.legs[0].city == 'Washington');
-						assert(res.body.comments.length === 3);
 						assert(res.body.comments[2].name == 'Administrator');
 						done();
 					});
@@ -1346,8 +1363,40 @@ describe('POST /api/users', function () {
 			.end(done);
 	});
 
-	// Waiting on issue #93
-	it('inserts the new users into the database as pending');
+	it('inserts the new users into the database as pending', function (done) {
+		agents.admin.request
+			.post('/api/users')
+			.send([
+				{
+					name: { value: 'Test Account' },
+					email: { value: 'tester2@test.com' },
+					access: { value: '0' },
+					countryCode: { value: 'US' },
+				},
+			])
+			.expect(200)
+			.end(function (err) {
+				if (err) {
+					done(err);
+				}
+
+				agents.admin.request
+					.get('/api/users')
+					.expect(200)
+					.end(function (err, res) {
+						if (err) {
+							done(err);
+						}
+
+						var testUser = res.body.filter(function (u) {
+							return u.name === 'Test Account';
+						})[0];
+
+						assert(testUser.pending === true);
+						done();
+					});
+			});
+	});
 });
 
 describe('POST /api/users/validate', function () {
@@ -1491,6 +1540,58 @@ describe('POST /api/users/validate', function () {
 				assert(res.body[6].country.value === 'United States');
 				assert(res.body[6].country.valid === true);
 				assert(res.body[6].valid === false);
+
+				done();
+			});
+	});
+
+	it('returns the validated users with access levels', function (done) {
+		agents.admin.request
+			.post('/api/users/validate')
+			.attach('users', __dirname + '/user_tests/test3.csv')
+			.expect(200)
+			.end(function (err, res) {
+				if (err) {
+					return done(err);
+				}
+
+				assert.isArray(res.body);
+				assert(res.body.length == 10);
+				res.body.forEach(function (user) {
+					assert.isObject(user);
+					assert.isObject(user.name);
+					assert.isString(user.name.value);
+					assert(user.name.valid === true);
+					assert.isObject(user.email);
+					assert.isString(user.email.value);
+					assert(user.email.valid === true);
+					assert.isObject(user.countryCode);
+					assert.isString(user.countryCode.value);
+					assert(user.countryCode.valid === true);
+					assert.isObject(user.country);
+					assert.isString(user.country.value);
+					assert(user.country.valid === true);
+					assert.isObject(user.access);
+					assert.isObject(user.phones);
+				});
+
+				res.body.slice(0, 7).forEach(function (user) {
+					assert(user.access.valid === true);
+					assert(user.valid === true);
+				});
+
+				res.body.slice(7, 10).forEach(function (user) {
+					assert(user.access.valid !== true);
+					assert(user.valid !== true);
+				});
+
+				assert(res.body[0].access.value === 0);
+				assert(res.body[1].access.value === 1);
+				assert(res.body[2].access.value === 2);
+				assert(res.body[3].access.value === 0);
+				assert(res.body[4].access.value === 1);
+				assert(res.body[5].access.value === 2);
+				assert(res.body[6].access.value === 2);
 
 				done();
 			});

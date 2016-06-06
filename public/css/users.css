@@ -15,3 +15,6 @@
 
 #htmlwrapper #searchBar {
   margin-bottom: 10px; }
+
+#htmlwrapper td:nth-child(5) {
+  text-align: center; }

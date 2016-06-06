@@ -1,7 +1,7 @@
 # BonVoyage: Peace Corps Leave Request Application
 
 [![Build Status](https://travis-ci.org/peacecorps/BonVoyage.svg?branch=master)](https://travis-ci.org/peacecorps/BonVoyage)
-[![Coverage Status](https://coveralls.io/repos/github/peacecorps/BonVoyage/badge.svg?branch=colin%2Fmocha)](https://coveralls.io/github/peacecorps/BonVoyage?branch=colin%2Fmocha)
+[![Coverage Status](https://coveralls.io/repos/github/peacecorps/BonVoyage/badge.svg?branch=master)](https://coveralls.io/github/peacecorps/BonVoyage?branch=master)
 
 BonVoyage is a web application built to provide a simplified and automated web-based method for Peace Corps volunteers to request leave.
 

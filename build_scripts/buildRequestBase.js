@@ -159,7 +159,7 @@ module.exports = function (options, done) {
 							{
 								name: 'Patrick Choquette',
 								user: userWithName(staff, 'Patrick Choquette')._id,
-								content: 'I approve of this request.',
+								content: 'Thank you for submitting your request through BonVoyage.',
 							},
 						],
 						counterpartApproved: true,

@@ -1,12 +1,17 @@
+/* globals document */
+
 function isValid(reference) {
+	'use strict';
 	reference.css('border', '3px solid #1FDA9A');
 }
 
 function isNotValid(reference) {
+	'use strict';
 	reference.css('border', '3px solid #DB3340');
 }
 
 function validate(reference, validate) {
+	'use strict';
 	if (reference && reference.val() === '') {
 		reference.css('border', '1px solid #ccc');
 		return false;
@@ -21,47 +26,30 @@ function validate(reference, validate) {
 	}
 }
 
-function getPosition(str, m, i) {
-	return str.split(m, i).join(m).length;
-}
-
 var enableBtn = function() {
+	'use strict';
 	document.getElementById('signupInfo').disabled = false;
-}
+};
 
 $(function () {
-	// reference token
-	var uri = window.location.href;
-	uri = uri.substring(uri.indexOf('register'));
-	var email = uri.substring(getPosition(uri, '/', 1) + 1, getPosition(uri, '/', 2));
-	var token = uri.substring(getPosition(uri, '/', 2) + 1);
-	$('#signupEmail').val(email);
-	$('#signupToken').val(token);
-
-	$('.form-signin').attr('action', '/api/register');
-	$('.form-signin').attr('method', 'post');
+	'use strict';
 
 	// initialize phone field
 	var password = $('#signupPassword');
 	var rePassword = $('#signupPassword2');
 
-	password.on('keyup change', function () {
+	var handleKeyup = function() {
 		var password1 = password.val();
 		var password2 = rePassword.val();
 
 		var valid = validate(password, password1 !== '' && password1 === password2);
 		validate(rePassword, password1 !== '' && password1 === password2);
 
-		if (valid) enableBtn();
-	});
+		if (valid) {
+			enableBtn();
+		}
+	};
 
-	rePassword.on('keyup change', function () {
-		var password1 = password.val();
-		var password2 = rePassword.val();
-
-		var valid = validate(password, password1 !== '' && password1 === password2);
-		validate(rePassword, password1 !== '' && password1 === password2);
-
-		if (valid) enableBtn();
-	});
+	password.on('keyup change', handleKeyup);
+	rePassword.on('keyup change', handleKeyup);
 });

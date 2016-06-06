@@ -2,35 +2,27 @@
 'use strict';
 
 var mongoose = require('mongoose');
+var tokenTypes = require(__dirname + '/../config/token-types');
 
 var tokenSchema = mongoose.Schema({
 	token: {
 		type: String,
 		required: true,
 	},
-	name: {
-		type: String,
+	user: {
+		type: mongoose.Schema.Types.ObjectId,
+		required: true,
+		ref: 'user',
 	},
-	email: {
+	tokenType: {
 		type: String,
 		required: true,
-	},
-	country: {
-		type: String,
-		required: true,
-		default: 'US',
+		enum: [tokenTypes.PASSWORD_RESET, tokenTypes.REGISTER],
 	},
 	timestamp: {
 		type: Date,
 		required: true,
 		default: Date.now,
-	},
-	tokenType: {
-		// false: password reset
-		// true: registration
-		type: Boolean,
-		required: true,
-		default: false,
 	},
 });
 

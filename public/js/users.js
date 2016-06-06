@@ -58,6 +58,17 @@ $(function () {
 				},
 			},
 			{
+				data: 'pending',
+				render: function(data) {
+					console.log(data);
+					if (data) {
+						return '<span class="label label-warning pendingLabel">Pending</span>';
+					} else {
+						return '<span class="label label-success pendingLabel">Verified</span>';
+					}
+				},
+			},
+			{
 				data: 'countryCode',
 				visible: false,
 			},

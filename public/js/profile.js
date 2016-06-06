@@ -36,11 +36,26 @@ $(function() {
       return false;
     }
 
-    var $select = $('select#country').selectize({
+    var $selectCountry = $('select#country').selectize({
         valueField: 'countryCode',
         labelField: 'country',
         searchField: ['country', 'countryCode'],
         sortField: 'country',
+    })[0];
+
+    var $selectAccess = $('select#access').selectize({
+        valueField: 'accessLevel',
+        labelField: 'access',
+        searchField: ['access', 'accessLevel'],
+        sortField: 'access',
+        options: [
+          { access: 'Volunteer', accessLevel: 0 },
+          { access: 'Staff', accessLevel: 1 },
+          { access: 'Administrator', accessLevel: 2 },
+        ],
+        items: [
+          $('select#access').attr('value')
+        ]
     })[0];
 
     // Load the JSON file of the countries
@@ -54,10 +69,10 @@ $(function() {
                 arrCountries.push({ "country": json[key], "countryCode": key });
             }
 
-            $select.selectize.addOption(arrCountries);
-            $select.selectize.refreshOptions(false);
+            $selectCountry.selectize.addOption(arrCountries);
+            $selectCountry.selectize.refreshOptions(false);
 
-            $select.selectize.setValue($('select#country').attr('value'));
+            $selectCountry.selectize.setValue($('select#country').attr('value'));
         }
     });
 
@@ -89,6 +104,7 @@ $(function() {
           }
         }
         if(ifChanged($('select#country'))) { data.countryCode = ifSelectizeChanged($('select#country')); }
+        if(ifChanged($('select#access'))) { data.access = ifSelectizeChanged($('select#access')); }
         return data;
     }
 
@@ -97,7 +113,8 @@ $(function() {
             changedData.name !== undefined ||
             changedData.email !== undefined ||
             changedData.phones !== undefined ||
-            changedData.countryCode !== undefined);
+            changedData.countryCode !== undefined ||
+            changedData.access !== undefined);
     }
 
     function toggleDisabledSubmissionButton() {
@@ -171,7 +188,8 @@ $(function() {
 
     // Events for when the form is changed
     $('form#profile input').on('keyup', toggleDisabledSubmissionButton);
-    $select.selectize.on('change', toggleDisabledSubmissionButton);
+    $selectCountry.selectize.on('change', toggleDisabledSubmissionButton);
+    $selectAccess.selectize.on('change', toggleDisabledSubmissionButton);
 
     // Event for when the form is submitted
     $('form#profile').on('submit', function(e) {

@@ -10,6 +10,7 @@ module.exports = function (done) {
 			hash: 'colin',
 			access: 2,
 			countryCode: 'US',
+			pending: false,
 		},
 		{
 			name: 'Sean Bae',
@@ -17,6 +18,7 @@ module.exports = function (done) {
 			hash: 'sean',
 			access: 2,
 			countryCode: 'US',
+			pending: false,
 		},
 		{
 			name: 'Hiroshi Furuya',
@@ -24,6 +26,7 @@ module.exports = function (done) {
 			hash: 'hiroshi',
 			access: 2,
 			countryCode: 'US',
+			pending: false,
 		},
 		{
 			name: 'Patrick Choquette',
@@ -31,6 +34,7 @@ module.exports = function (done) {
 			hash: 'patrick',
 			access: 1,
 			countryCode: 'US',
+			pending: false,
 		},
 		{
 			name: 'Jane Smith',
@@ -38,6 +42,7 @@ module.exports = function (done) {
 			hash: 'jane',
 			access: 1,
 			countryCode: 'BW',
+			pending: false,
 		},
 		{
 			name: 'John Doe',
@@ -45,6 +50,7 @@ module.exports = function (done) {
 			hash: 'john',
 			access: 0,
 			countryCode: 'BW',
+			pending: false,
 		},
 		{
 			name: 'Ishaan Parikh',
@@ -52,6 +58,7 @@ module.exports = function (done) {
 			hash: 'ishaan',
 			access: 0,
 			countryCode: 'US',
+			pending: false,
 		},
 		{
 			name: 'Jeff Hilnbrand',
@@ -59,6 +66,15 @@ module.exports = function (done) {
 			hash: 'jeff',
 			access: 0,
 			countryCode: 'US',
+			pending: false,
+		},
+		{
+			name: 'Jake West',
+			email: 'jake@test.com',
+			hash: 'jake',
+			access: 0,
+			countryCode: 'US',
+			pending: true,
 		},
 	];
 	var users = [];

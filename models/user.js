@@ -33,6 +33,10 @@ var userSchema = mongoose.Schema({
 		required: true,
 		enum: countries.codeList,
 	},
+	pending: {
+		type: Boolean,
+		required: true,
+	},
 });
 
 var presave = function (callback) {

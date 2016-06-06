@@ -1,7 +1,9 @@
 @import 'datatables_custom';
 
 #htmlwrapper {
-
+	td:nth-child(5) {
+		text-align: center;
+	}
 }
 //
 // #htmlwrapper {

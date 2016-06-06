@@ -6,16 +6,16 @@ block styles
   link(href='/css/register.css', rel='stylesheet')
 block content
   .login-container
-    form.form-signin
+    form.form-signin(action='/api/register' method='POST')
       h2.form-signin-heading
         p Register
 
       include flash
 
       label.signup.sr-only(for='signupToken') Registration Token
-      input#signupToken.form-control.hidden(type='text', placeholder='Token Value', required='', autofocus='', name='token', value=submission.token)
-      label.signup.sr-only(for='signupEmail') Email
-      input#signupEmail.form-control.hidden(type='text', placeholder='Token Value', required='', autofocus='', name='email', value=submission.email)
+      input#signupToken.form-control.hidden(type='text', placeholder='Token Value', required='', autofocus='', name='token', value=token)
+      label.signup.sr-only(for='signupToken') Registration Token
+      input#signupToken.form-control.hidden(type='text', placeholder='Token Value', required='', autofocus='', name='email', value=token)
       label.signup(for='signupPassword') Password
       input#signupPassword.form-control(type='password', placeholder='Enter Password', required='', name='password', value=submission.password)
       label.signup(for='signupPassword2') Re-enter Password
@@ -24,5 +24,4 @@ block content
       button#signupInfo.submit-btn.btn.btn-lg.btn-default.btn-block(disabled='true', type='submit') Set Password
 
 block scripts
-  // Include all complied plugins
   script(src='/js/register.js')

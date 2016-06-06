@@ -150,7 +150,7 @@ module.exports.getUsers = function (options, cb) {
 	}
 
 	// Note: using lean() so that users is a JS obj, instead of a Mongoose obj
-	User.find(q, 'access name email phones _id countryCode').lean().exec(
+	User.find(q, '-hash').lean().exec(
 		function (err, users) {
 		if (err) {
 			cb(err);
@@ -214,11 +214,8 @@ module.exports.sendEmail = function (sendFrom, sendTo, subject, text,
 	}
 };
 
-module.exports.sendTemplateEmail = function (sendFrom, sendTo, subject,
-	template, map, callback) {
-
-	var html = jade.renderFile(path.join(__dirname, '../email',
-		template + '.jade'), map);
+module.exports.sendTemplateEmail = function (sendFrom, sendTo, subject, template, map, callback) {
+	var html = jade.renderFile(path.join(__dirname, '../email', template + '.jade'), map);
 
 	var sendMimeCallback = function (sendError) {
 		if (sendError) {
@@ -344,22 +341,24 @@ module.exports.postComment = function (
 			}
 
 			// notify the staff
-			User.findById(reviewerId, function (err, reviewer) {
-				if (err) {
-					console.log(err);
-					cb(err);
-				}
-
-				if (reviewer.phones) {
-					for (var i = 0; i < reviewer.phones.length; i++) {
-						module.exports.sendSMS(reviewer.phones[i], 'A BonVoyage ' +
-							'leave request for ' + volunteer.name +
-							' has been updated. Please review the ' +
-							'details at ' + process.env.BONVOYAGE_DOMAIN +
-							'/requests/' + requestId);
+			if (reviewerId) {
+				User.findById(reviewerId, function (err, reviewer) {
+					if (err) {
+						console.log(err);
+						cb(err);
 					}
-				}
-			});
+
+					if (reviewer.phones) {
+						for (var i = 0; i < reviewer.phones.length; i++) {
+							module.exports.sendSMS(reviewer.phones[i], 'A BonVoyage ' +
+								'leave request for ' + volunteer.name +
+								' has been updated. Please review the ' +
+								'details at ' + process.env.BONVOYAGE_DOMAIN +
+								'/requests/' + requestId);
+						}
+					}
+				});
+			}
 		});
 	});
 };

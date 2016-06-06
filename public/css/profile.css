@@ -7,8 +7,9 @@
   border: 2px solid black; }
 
 #htmlwrapper #headerName {
-  font-weight: 600;
   margin-bottom: 30px; }
+  #htmlwrapper #headerName h2 {
+    font-weight: 600; }
 
 #htmlwrapper form {
   max-width: 300px;
@@ -34,3 +35,6 @@
     #htmlwrapper form .phoneNumberWrapper > .deletePhoneDiv {
       padding-right: 0;
       padding-left: 0; }
+
+#htmlwrapper .pendingLabelBox {
+  text-align: center; }

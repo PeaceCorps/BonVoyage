@@ -12,3 +12,40 @@
   margin-bottom: 10px; }
   #htmlwrapper .shadow-box .comment p {
     white-space: pre-wrap; }
+
+#htmlwrapper span.glyphicon,
+#htmlwrapper span.fa {
+  margin-right: 4px; }
+  #htmlwrapper span.glyphicon.glyphicon-pencil,
+  #htmlwrapper span.fa.glyphicon-pencil {
+    top: 1px; }
+  #htmlwrapper span.glyphicon.glyphicon-trash,
+  #htmlwrapper span.fa.glyphicon-trash {
+    top: 2px; }
+
+#htmlwrapper .checkbox label::before,
+#htmlwrapper .checkbox label::after {
+  top: 6px; }
+
+#htmlwrapper .checkbox input {
+  height: 0px;
+  width: 0px;
+  margin: 0px; }
+
+#htmlwrapper .checkbox-success {
+  margin-top: 0; }
+
+#htmlwrapper .checkbox-danger {
+  margin-bottom: 0; }
+
+#htmlwrapper p.none-notice {
+  font-size: 14px; }
+
+#htmlwrapper #request-approval-btn,
+#htmlwrapper #submit-comment {
+  margin-bottom: 0; }
+
+#htmlwrapper .checkbox.useiconx input[type=radio]:checked + label:after {
+  content: "\f00d";
+  font-size: 13px;
+  top: 5px; }

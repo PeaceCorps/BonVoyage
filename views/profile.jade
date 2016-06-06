@@ -15,7 +15,13 @@ block content
 				img#countryFlag(src='/image/flags/' + userToShow.countryCode.toLowerCase() + '.svg')
 				
 				//- Header name
-				h2#headerName= userToShow.name
+				#headerName
+					h2= userToShow.name
+					.pendingLabelBox
+						if userToShow.pending
+							span.pendingLabel.label.label-warning Pending Email Verification
+						else
+							span.pendingLabel.label.label-success Email Verified
 				
 				//- Form Fields
 				form#profile
@@ -38,6 +44,9 @@ block content
 					
 					label(for='name') Country
 					select.form-control#country(value=userToShow.countryCode, data-default=userToShow.countryCode, disabled=!(user.access == 2 || user._id.toString() === userToShow._id.toString()))
+					
+					label(for='access') Access Level
+					select.form-control#access(value=userToShow.access, data-default=userToShow.access, disabled=!(user.access == 2))
 					
 					button.btn.btn-success(type='submit' disabled) Update Profile
 

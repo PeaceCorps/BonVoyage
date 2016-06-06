@@ -47,7 +47,7 @@ $(function() {
       $($warnings).append(
           $(
               "<div class='warning alert " + warning.colorClass + "' role='alert'> \
-                  <span><span class='glyphicon glyphicon-exclamation-sign' aria-hidden='true'></span><b>" + warning.source + " - " + warning.type + ": </b> " + warning.textOverview + " <b><a href='" + warning.link + "'>More Information</a></b></span> \
+                  <span><span class='glyphicon glyphicon-exclamation-sign' aria-hidden='true'></span><b>" + warning.source + " - " + warning.type + ": </b> " + warning.textOverview + " <b><a target='_blank' rel='noopener noreferrer' href='" + warning.link + "'>More Information</a></b></span> \
               </div>"
           )
       );
@@ -105,15 +105,50 @@ $(function() {
       $('.contact').intlTelInput({
         utilsScript: '/js/utils.js',
       });
+
+      $('.contact').on('propertychange change click keyup input paste', function () {
+        var formVal = $('.contact').val();
+        var notValidNumber = !($('.contact').intlTelInput('isValidNumber'));
+
+        if (formVal.length === 0) {
+          $('#request-submit-btn').prop('disabled', false);
+          $('.contact').removeClass('invalid-form');
+          return;
+        }
+
+        if (formVal.length > 0 && notValidNumber) {
+          // disable button
+          $('#request-submit-btn').prop('disabled', true);
+          $('.contact').addClass('invalid-form');
+        } else {
+          // enable button
+          $('#request-submit-btn').prop('disabled', false);
+          $('.contact').addClass('valid-form');
+        }
+      });
   }
 
   function addLeg(leg) {
       count++; addedLegCount++;
+      var defaultStart, defaultEnd, defaultContact = '';
       var m = new moment();
       m.add(1, 'month');
-      var defaultStart = new DateOnly(m);
+      // If this is not the first leg, use the previous leg to define the default dates
+      if (count > 1) {
+        // Get the end date from the previous request
+        var prevLeg = $('.leg:nth-child(' + (count - 1) + ')');
+        var prevEnd = $(prevLeg).find('.date-returning').val();
+        if (prevEnd) {
+          m = new moment(new DateOnly(prevEnd).toDate());
+        }
+        var prevContactInput = $(prevLeg).find('.contact');
+        if ($(prevContactInput).intlTelInput('isValidNumber')) {
+          defaultContact = $(prevContactInput).intlTelInput('getNumber');
+        }
+      }
+      defaultStart = new DateOnly(m);
       m.add(4, 'days');
-      var defaultEnd = new DateOnly(m);
+      defaultEnd = new DateOnly(m);
       var html =
       "<div class='leg shadow-box'> \
           <h2> Trip Leg #" + count + " </h2> \
@@ -122,13 +157,13 @@ $(function() {
           <input class='form-control datepicker date-leaving' type='text' placeholder='Jan 1, 2000', value='" + (leg && leg.startDate ? leg.startDate : defaultStart.toString()) + "'> \
           <label class='info'>Date returning to site <span class='required'>*<span></label> \
           <input class='form-control datepicker date-returning' type='text' placeholder='Dec 31, 2000', value='" + (leg && leg.endDate ? leg.endDate : defaultEnd.toString()) + "'> \
-          <label class='info'>City <span class='required'>*<span></label> \
+          <label class='info'>Destination City <span class='required'>*<span></label> \
           <input class='form-control city' type='text' placeholder='Chicago' value='" + (leg && leg.city ? leg.city : '') + "'></input> \
-          <label class='info'>Country <span class='required'>*<span></label> \
+          <label class='info'>Destination Country <span class='required'>*<span></label> \
           <select class='form-control select-country' placeholder='United States'></select> \
           <div class='warnings'></div> \
-          <label class='info'>Travel contact</label> \
-          <input class='form-control contact' type='tel' value='" + (leg && leg.contact ? leg.contact : '') + "'></input> \
+          <label class='info'>Best number to reach you at during travel</label> \
+          <input class='form-control contact' type='tel' value='" + (leg && leg.contact ? leg.contact : defaultContact) + "'></input> \
           <label class='info'>Hotel/Hostel Information</label> \
           <input class='form-control hotel' type='text' placeholder='San Francisco Hotel: +1 123-456-7890' value='" + (leg && leg.hotel ? leg.hotel : '') + "'></input> \
           <label class='info'>Travel companions</label> \
@@ -146,17 +181,19 @@ $(function() {
       var leg = $('.leg:nth-child(' + n + ')');
       var start = $(leg).find('.date-leaving').val();
       var end = $(leg).find('.date-returning').val();
+      var isValidNumber = $(leg).find('.contact').intlTelInput('isValidNumber');
       var data = {
           startDate: (start ? (new DateOnly(start).toString()) : undefined),
           endDate: (end ? (new DateOnly(end).toString()) : undefined),
           city: $(leg).find('.city').val(),
           country: $(leg).find('.selectized').selectize()[0].selectize.getValue(),
           hotel: $(leg).find('.hotel').val(),
-          contact: $(leg).find('.contact').intlTelInput('getNumber'),
+          contact: isValidNumber ? $(leg).find('.contact').intlTelInput('getNumber') : '',
           companions: $(leg).find('.companions').val(),
           description: $(leg).find('.description').val(),
           addedLegCount: $(leg).find('.addedLegCount').val(),
       };
+
       return data;
   }
 

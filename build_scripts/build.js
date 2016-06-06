@@ -25,7 +25,7 @@ clearDatabase(function (err) {
 			if (err) {
 				console.error(err);
 			} else {
-				buildRequestBase({}, function (err) {
+				buildRequestBase({ random: true }, function (err) {
 					if (err) {
 						console.error(err);
 					} else {

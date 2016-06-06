@@ -64,19 +64,28 @@
 		});
 	});
 
-	gulp.task('mocha', ['set-test-env', 'scrape'], function () {
+	gulp.task('pre-mocha', ['set-test-env', 'scrape']);
+
+	gulp.task('mocha', ['pre-mocha'], function () {
 		return gulp
 			.src('tests/*.js', { read: false })
 			.pipe(mocha());
 	});
 
-	gulp.task('mocha-nyan', ['set-test-env', 'scrape'], function () {
+	// Avoids scraping for when your internet is slow
+	gulp.task('mocha-min', ['set-test-env'], function () {
+		return gulp
+			.src('tests/*.js', { read: false })
+			.pipe(mocha());
+	});
+
+	gulp.task('mocha-nyan', ['pre-mocha'], function () {
 		return gulp
 			.src('tests/*.js', { read: false })
 			.pipe(mocha({ reporter: 'nyan' }));
 	});
 
-	gulp.task('pre-coveralls', ['set-test-env'], function () {
+	gulp.task('pre-coveralls', function () {
 		return gulp.src([
 				'routes/**/*.js',
 				'app.js',
@@ -90,7 +99,7 @@
 			.pipe(istanbul.hookRequire());
 	});
 
-	gulp.task('coverage', ['pre-coveralls'], function () {
+	gulp.task('coverage', ['pre-mocha', 'pre-coveralls'], function () {
 		return gulp
 			.src('tests/*.js', { read: false })
 			.pipe(mocha({ reporter: 'spec' }))
@@ -104,6 +113,6 @@
 	});
 
 	gulp.task('default', ['lint', 'scss', 'scss:watch']);
-	gulp.task('ci', ['lint', 'scss', 'mocha']);
+	gulp.task('ci', ['lint', 'scss', 'coveralls']);
 	gulp.task('deploy', ['lint', 'scss', 'scrape']);
 })();
