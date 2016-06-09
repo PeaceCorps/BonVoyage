@@ -71,7 +71,7 @@ function notifyAll(requests) {
 	}
 }
 
-function onFinish(notifyWarnings) {
+function onFinish(batchUUID, notifyWarnings) {
 	// notifyWarnings is now populated
 	for (var j = 0; j < notifyWarnings.length; j++) {
 		if (notifyWarnings[j]) {
@@ -137,7 +137,7 @@ var storeWarnings = function (warnings) {
 					notifyWarnings.push(warnings[i]);
 
 					if (count === 0) {
-						onFinish(notifyWarnings);
+						onFinish(batchUUID, notifyWarnings);
 					}
 				}
 			});
