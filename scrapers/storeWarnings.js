@@ -62,7 +62,6 @@ function notifyVolunteerStaff(request) {
 			}
 		}
 	});
-
 }
 
 function notifyAll(requests) {
@@ -135,12 +134,11 @@ var storeWarnings = function (warnings) {
 					console.log('Updating an existing warning.');
 				} else {
 					notifyWarnings.push(warnings[i]);
-
-					if (count === 0) {
-						onFinish(batchUUID, notifyWarnings);
-					}
 				}
 			});
+		}
+		if (count === 0) {
+			onFinish(batchUUID, notifyWarnings);
 		}
 	}
 };
